@@ -1,7 +1,8 @@
-import jwt from "jwt"
+import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
-export default function(req,res,token){
-  const token = req.header('Authorization');
+
+export default function verifytoken(req,res,token){
+   token = req.header('Authorization');
   if(!token) return res.status(401).json({error: "Access Denied"});
   try{
     const decoded = jwt.verify(token,process.env.SECRET_KEY)
@@ -11,3 +12,4 @@ export default function(req,res,token){
     res.status(401).json({error: 'Invalid Token'})
   }
 }
+
