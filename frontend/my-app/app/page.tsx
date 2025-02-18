@@ -37,10 +37,17 @@ export default function Home() {
       return;
     }
 
-    const response = axios.post(`${process.env.SERVER_URL}/login`, {
+    const response = await axios.post(`${process.env.SERVER_URL}/login`, {
       email: email,
       password: password
     })
+
+    if (response.status === 200) {
+      toast.success("Login successful")
+      router.push(`/${response.data.user.role}`);
+    } else{
+      toast.error("Login Unsuccessful")
+    }
 
   };
 
@@ -93,7 +100,7 @@ export default function Home() {
             </RadioGroup>
           </FormControl>
 
-          <p>Don't have an Account? <a href="/signup" className={`text-[#B8860B] ${dancingScript.className} ml-3 text-4xl `}>Sign Up</a></p>
+          <p>Don't have an Account? <a href="/signin" className={`text-[#B8860B] ${dancingScript.className} ml-3 text-4xl `}>Sign Up</a></p>
 
           <button
             type="submit"

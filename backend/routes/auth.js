@@ -10,7 +10,7 @@ const router = express.Router();
 
 export async function register(req, res) {
   try {
-    const { username, email, password, role, interestedtags } = req.body;
+    const { username, email, password, role ,interestedtags } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, email, password: hashedPassword, role, interestedtags })
     await user.save();
