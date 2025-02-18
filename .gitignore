@@ -1,0 +1,21 @@
+# See https://help.github.com/en/articles/ignoring-files#create-a-gitignore-file
+
+/*/**/node_modules
+
+/build
+
+.next
+
+.vercel
+.env
+.cache
+
+.DS_Store
+*.sass-cache
+connect.lock
+coverage
+libpeerconnection.log
+testem.log
+npm-debug.log
+yarn-error.log
+yarn-debug.log
