@@ -2,9 +2,9 @@ import user from "../models/user.js";
 
 export async function getAgents(req,res){
   try{
-  const users_agents =  await user.findMany({
+  const users_agents =  await user.find({
     $or: [
-      { role: "user" },
+      { role: "student" },
       { role: "agent" }
     ]
   });

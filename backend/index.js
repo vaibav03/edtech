@@ -1,35 +1,36 @@
-import express from "express"
-import { register, login } from "./routes/auth.js"
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+
+import { register, login } from "./routes/auth.js";
 import verifytoken from "./middleware/authMidlleware.js";
 import { mongoconnect } from "./db/mongodb.js";
-import dotenv from "dotenv"
 import { delAgents, getAgents } from "./routes/admin.js";
-import cors from "cors"
 
-dotenv.config()
+dotenv.config();
 
-const app = express()
-app.use(cors())
+const app = express();
+const router = express.Router();
+
+app.use(express.json()); 
+app.use(cors());  
 app.use((req, res, next) => {
-  console.log("Middleware is running");
+  console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
 });
 
-app.listen(8000, () => {
-  console.log("App is listening on port 8000");
-});
-
-mongoconnect();
-
-const router = express.Router();
-app.use("/api", router);
-router.use(express.json())
+mongoconnect(); 
 
 router.post("/register", register);
 router.post("/login", login);
 
-
-router.use(verifytoken)
+router.use(verifytoken);
 
 router.get("/admin", getAgents);
 router.post("/admin", delAgents);
+
+app.use("/api", router);
+
+app.listen(8000, () => {
+  console.log("App is listening on port 8000");
+});

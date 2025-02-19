@@ -6,11 +6,10 @@ import dotenv from "dotenv"
 
 dotenv.config()
 const secret_key = process.env.SECRET_KEY
-const router = express.Router();
 
 export async function register(req, res) {
   try {
-    const { username, email, password, role ,interestedtags } = req.body;
+    const { username, email, password, role, interestedtags } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ username, email, password: hashedPassword, role, interestedtags })
     await user.save();
@@ -24,19 +23,23 @@ export async function register(req, res) {
 
 export async function login(req, res) {
   try {
+    console.log("login")
     const { email, password, role } = req.body;
     const user = await User.findOne({ email }).select("+password");
+    console.log(user)
     if (!user) return res.status(401).json({ message: "Invalid User" });
-
+    console.log(user.role)
     const passwordmatch = await bcrypt.compare(password, user.password);
-
+    console.log(passwordmatch)
     if (!passwordmatch)
       return res.status(401).json({ error: "Authentication Failed" });
-
+    
+    console.log("passed password match")
     const token = jwt.sign({ userId: user.id, role: user.role }, secret_key, {
       expiresIn: '1h',
     })
-    res.status(200).json({ token, user })
+    console.log(token)
+    return res.status(200).json({ token, user })
   } catch (e) {
     console.log(e)
     return res.status(500).json({ error: "Login failed" })

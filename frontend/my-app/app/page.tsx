@@ -11,6 +11,9 @@ import { toast } from "react-hot-toast";
 import { Dancing_Script, Montserrat } from "next/font/google";
 import axios from "axios"
 import dotenv from "dotenv"
+import secureLocalStorage from "react-secure-storage";
+
+dotenv.config()
 const dancingScript = Dancing_Script({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -32,20 +35,23 @@ export default function Home() {
 
   const handleLogin = async (e: any) => {
     e.preventDefault();
+    console.log(email, password, role)
     if (!email || !password) {
       toast.error("Enter email and password")
       return;
     }
 
-    const response = await axios.post(`${process.env.SERVER_URL}/login`, {
-      email: email,
-      password: password
-    })
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/login`, {
+      email,
+      password,
+      role
+    });
 
     if (response.status === 200) {
+      secureLocalStorage.setItem("token", response.data.token)
       toast.success("Login successful")
       router.push(`/${response.data.user.role}`);
-    } else{
+    } else {
       toast.error("Login Unsuccessful")
     }
 

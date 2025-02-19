@@ -53,8 +53,6 @@ export default function SignIn() {
     }
 
     try {
-      console.log(username, email, password)
-      console.log(process.env.NEXT_PUBLIC_SERVER_URL, role, interestedTags)
       const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/register`, {
         username,
         email,
