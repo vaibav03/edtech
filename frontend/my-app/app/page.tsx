@@ -48,8 +48,12 @@ export default function Home() {
     });
 
     if (response.status === 200) {
+      secureLocalStorage.setItem("user", response.data.user)
       secureLocalStorage.setItem("token", response.data.token)
       toast.success("Login successful")
+      if(response.data.user.role === "agent") {
+      router.push(`/agent/?uploadedby=${response.data.user.email}`);
+      }
       router.push(`/${response.data.user.role}`);
     } else {
       toast.error("Login Unsuccessful")
