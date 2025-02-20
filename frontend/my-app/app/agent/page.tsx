@@ -48,6 +48,7 @@ const availableTags = [
   "Cloud Computing", "Blockchain", "Embedded Systems", "UI/UX Design",
   "Mobile App Development", "Computer Vision"
 ];
+
 const AgentInternships = () => {
   const [internships, setInternships] = useState([]);
   const theme = useTheme();
@@ -98,18 +99,28 @@ const AgentInternships = () => {
     setPersonName(
       typeof value === 'string' ? value.split(',') : value,
     );
+    return true;
   };
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    console.log(formData)
   };
 
   const handleAddInternship = async (e: any) => {
     e.preventDefault();
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}`, formData);
-      toast.success("Internship added successfully!");
-      fetchInternships();
+      const user = secureLocalStorage.getItem("user");
+      if (user && typeof user === 'object' && 'email' in user) {
+        console.log("sending request to", `${process.env.NEXT_PUBLIC_SERVER_URL}/agent?uploadedby=${user.email}`, secureLocalStorage.getItem("token"));
+        await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URL}/agent?uploadedby=${user.email}`,
+          formData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${secureLocalStorage.getItem("token")}`
+          }
+        });
+        toast.success("Internship added successfully!");
+        fetchInternships();
+      }
     } catch (error) {
       toast.error("Failed to add internship");
       console.error(error);
@@ -118,95 +129,105 @@ const AgentInternships = () => {
 
   const handleDeleteInternship = async (name: string) => {
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URL}`, { data: { name, uploadedby: formData.uploadedby } });
-      toast.success("Internship deleted successfully!");
-      fetchInternships();
-    } catch (error) {
-      toast.error("Failed to delete internship");
-      console.error(error);
-    }
-  };
+      await axios.delete(`${process.env.NEXT_PUBLIC_SERVER_URL}`, {
+        data: { name, uploadedby: formData.uploadedby },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${secureLocalStorage.getItem("token")}`
+        }
+      });
+      internships.filter((internship: Internship) => internship.name !== name);
+    toast.success("Internship deleted successfully!");
+    fetchInternships();
+  } catch (error) {
+    toast.error("Failed to delete internship");
+    console.error(error);
+  }
+};
 
-  return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">Manage Internships</h2>
+return (
+  <div className="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+    <h2 className="text-2xl font-bold mb-4 text-center">Manage Internships</h2>
 
-      <form onSubmit={handleAddInternship} className="mb-6 space-y-4">
-        <input className="w-full p-2 border rounded" name="name" placeholder="Internship Name" onChange={handleChange} required />
-        <input className="w-full p-2 border rounded" name="company" placeholder="Company" onChange={handleChange} required />
-        <input className="w-full p-2 border rounded" name="position" placeholder="Position" onChange={handleChange} required />
-        <textarea className="w-full p-2 border rounded" name="description" placeholder="Description" onChange={handleChange} required />
+    <form onSubmit={handleAddInternship} className="mb-6 space-y-4">
+      <input className="w-full p-2 border rounded" name="name" placeholder="Internship Name" onChange={handleChange} required />
+      <input className="w-full p-2 border rounded" name="company" placeholder="Company" onChange={handleChange} required />
+      <input className="w-full p-2 border rounded" name="position" placeholder="Position" onChange={handleChange} required />
+      <textarea className="w-full p-2 border rounded" name="description" placeholder="Description" onChange={handleChange} required />
 
-        <FormControl sx={{ m: 1, width: 300 }}>
-          <InputLabel id="demo-multiple-chip-label">Select Interested Fields</InputLabel>
-          <Select
-            labelId="demo-multiple-chip-label"
-            id="demo-multiple-chip"
-            multiple
-            value={personName}
-            name="interestedtags"
-            onChange={handleChangetag || handleChange}
-            input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
-            renderValue={(selected) => {
-              return (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value} />
-                  ))}
-                </Box>
-              );
-            }}
-            MenuProps={MenuProps}
-          >
-            {availableTags.map((name) => (
-              <MenuItem
-                key={name}
-                value={name}
-                style={getStyles(name, personName, theme)}
-              >
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+      <FormControl sx={{ m: 1, width: 300 }}>
+        <InputLabel id="demo-multiple-chip-label">Select Interested Fields</InputLabel>
+        <Select
+          labelId="demo-multiple-chip-label"
+          id="demo-multiple-chip"
+          multiple
+          value={personName}
+          name="interestedtags"
+          onChange={(event) => {
+            handleChangetag(event);
+            handleChange(event);
+          }}
+          input={<OutlinedInput id="select-multiple-chip" label="Chip" />}
+          renderValue={(selected) => {
+            return (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {selected.map((value) => (
+                  <Chip key={value} label={value} />
+                ))}
+              </Box>
+            );
+          }}
+          MenuProps={MenuProps}
+        >
+          {availableTags.map((name) => (
+            <MenuItem
+              key={name}
+              value={name}
+              style={getStyles(name, personName, theme)}
+            >
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-        <input className="w-full p-2 border rounded" name="salary" placeholder="Salary" onChange={handleChange} required />
-        <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Internship</button>
-      </form>
+      <input className="w-full p-2 border rounded" name="salary" placeholder="Salary" onChange={handleChange} required />
+      <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Add Internship</button>
+    </form>
 
-      <h3 className="text-xl font-semibold mb-4">Uploaded Internships</h3>
-      {internships.length === 0 ? (
-        <p>No internships found</p>
-      ) : (
-        <table className="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Name</th>
-              <th className="border p-2">Company</th>
-              <th className="border p-2">Position</th>
-              <th className="border p-2">Salary</th>
-              <th className="border p-2">Actions</th>
+    <h3 className="text-xl font-semibold mb-4">Uploaded Internships</h3>
+    {internships.length === 0 ? (
+      <p>No internships found</p>
+    ) : (
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-2">Name</th>
+            <th className="border p-2">Company</th>
+            <th className="border p-2">Position</th>
+            <th className="border p-2">Salary</th>
+            <th className="border p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {internships.map((internship: Internship) => (
+            <tr key={internship.name} className="text-center">
+              <td className="border p-2">{internship.name}</td>
+              <td className="border p-2">{internship.company}</td>
+              <td className="border p-2">{internship.position}</td>
+              <td className="border p-2">{internship.salary}</td>
+              <td className="border p-2">
+                <button onClick={() => handleDeleteInternship(internship.name)} className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
+                  Delete
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {internships.map((internship: Internship) => (
-              <tr key={internship.name} className="text-center">
-                <td className="border p-2">{internship.name}</td>
-                <td className="border p-2">{internship.company}</td>
-                <td className="border p-2">{internship.position}</td>
-                <td className="border p-2">{internship.salary}</td>
-                <td className="border p-2">
-                  <button onClick={() => handleDeleteInternship(internship.name)} className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+);
 };
 
 
