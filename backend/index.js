@@ -6,7 +6,7 @@ import { register, login } from "./routes/auth.js";
 import verifytoken from "./middleware/authMidlleware.js";
 import { mongoconnect } from "./db/mongodb.js";
 import { delAgents, getAgents } from "./routes/admin.js";
-
+import { uploadedinternships, deleteinternship , addinternship } from "./routes/agents.js";
 dotenv.config();
 
 const app = express();
@@ -28,6 +28,15 @@ router.use(verifytoken);
 
 router.get("/admin", getAgents);
 router.post("/admin", delAgents);
+
+router.get("/agent",uploadedinternships);
+router.post("/agent",addinternship);
+router.delete("/agent",deleteinternship);
+
+
+// router.get("/student",uploadedinternships);
+// router.post("/student",applyInternship);
+// router.get("/student/applied",getappliedinternships);
 
 app.use("/api", router);
 
